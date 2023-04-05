@@ -6,10 +6,24 @@ from PIL import Image
 import tensorflow as tf
 import requests
 import json
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
 enpdoint = 'http://localhost:8501/v1/models/cars_model:predict'
+
+origins = [
+    'http://localhost',
+    'http://localhost:3000',
+    'http://localhost:8000',
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
 
 CLASS_NAMES = ['GAZ 3102', 'GAZ 3110', 'GAZ 31105', 'LADA 1111', 'LADA 2101',
                'LADA 2102', 'LADA 2103', 'LADA 2104', 'LADA 2105', 'LADA 2106',
@@ -38,7 +52,7 @@ async def predict(
         'instances': img_batch.tolist()
     }
     
-    response = requests.post(enpdoint, json=json.dumps(json_data))
+    response = requests.post(enpdoint, json=json_data)
     prediction = np.array(response.json()['predictions'][0])
     
     pred_class = CLASS_NAMES[np.argmax(prediction)]
